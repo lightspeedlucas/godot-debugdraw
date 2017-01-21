@@ -1,0 +1,12 @@
+#!/usr/bin/env python
+
+Import('env')
+Import('env_modules')
+
+env_debugdraw = env_modules.Clone()
+
+# Compile as a static library
+lib = env_debugdraw.Library("debugdraw", Glob("*.cpp"))
+
+# Add the library as a dependency of the final executable
+env.Prepend(LIBS=[lib])
