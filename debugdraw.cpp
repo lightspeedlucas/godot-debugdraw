@@ -73,7 +73,27 @@ void DebugDraw::line(const Vector2 &a, const Vector2 &b, const Color &color, flo
     }
 }
 
-void DebugDraw::rect(const Rect2 &rect, const Color &color, float duration)
+void DebugDraw::rect(const Rect2 &rect, const Color &color, float width, float duration)
+{
+    if (ready || init())
+    {
+        auto tl = rect.pos;
+        auto tr = rect.pos + Vector2(rect.size.x, 0);
+        auto bl = rect.pos + Vector2(0, rect.size.y);
+        auto br = rect.pos + rect.size;
+
+        auto *vs = VS::get_singleton();
+        Drawing d = { vs->canvas_item_create(), duration };
+        vs->canvas_item_set_parent(d.canvas_item, canvas);
+        vs->canvas_item_add_line(d.canvas_item, tl, tr, color, width);
+        vs->canvas_item_add_line(d.canvas_item, tr, br, color, width);
+        vs->canvas_item_add_line(d.canvas_item, br, bl, color, width);
+        vs->canvas_item_add_line(d.canvas_item, bl, tl, color, width);
+        drawings.push_back(d);
+    }
+}
+
+void DebugDraw::area(const Rect2 &rect, const Color &color, float duration)
 {
     if (ready || init())
     {
@@ -130,7 +150,8 @@ void DebugDraw::_bind_methods()
 {
     ObjectTypeDB::bind_method(_MD("circle", "position:Vector2", "radius:real", "color:Color", "duration:real"), &DebugDraw::circle, DEFVAL(.0f));
     ObjectTypeDB::bind_method(_MD("line", "a:Vector2", "b:Vector2", "color:Color", "width:real", "duration:real"), &DebugDraw::line, DEFVAL(1.f), DEFVAL(.0f));
-    ObjectTypeDB::bind_method(_MD("rect", "rect:Rect2", "color:Color", "duration:real"), &DebugDraw::rect, DEFVAL(.0f));
+    ObjectTypeDB::bind_method(_MD("rect", "rect:Rect2", "color:Color", "width:real", "duration:real"), &DebugDraw::rect, DEFVAL(1.f), DEFVAL(.0f));
+    ObjectTypeDB::bind_method(_MD("area", "rect:Rect2", "color:Color", "duration:real"), &DebugDraw::area, DEFVAL(.0f));
 
     ObjectTypeDB::bind_method(_MD("clear"), &DebugDraw::clear);
 

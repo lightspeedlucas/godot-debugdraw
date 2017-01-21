@@ -18,7 +18,8 @@ public:
     /** Methods */
     void circle(const Vector2 &position, float radius, const Color &color, float duration = .0f);
     void line(const Vector2 &a, const Vector2 &b, const Color &color, float width = 1, float duration = .0f);
-    void rect(const Rect2 &rect, const Color &color, float duration = .0f);
+    void rect(const Rect2 &rect, const Color &color, float width = 1, float duration = .0f);
+    void area(const Rect2 &rect, const Color &color, float duration = .0f);
 
     void clear();
     void _idle_frame();
