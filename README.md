@@ -8,9 +8,10 @@ A simple C++ module that adds debug drawing functions into Godot Engine, like Un
 
 Currently, the following functions are supported:
 
-- `line(a, b, color, width = 1, duration = 0)`
-- `circle(position, radius, color, duration = 0)`
-- `rect(rect, color, duration = 0)`
+- `line(a, b, color, width = 1, duration = 0)` for a simple line
+- `circle(position, radius, color, duration = 0)` for a filled circle
+- `rect(rect, color, width = 1, duration = 0)` for a hollow rectangle
+- `area(rect, color, duration = 0)` for a filled rectangle
 
 All functions have an optional *duration* parameter that indicates how long they should stay on screen. The default value of 0 means a single frame.
 
