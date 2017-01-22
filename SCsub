@@ -4,6 +4,7 @@ Import('env')
 Import('env_modules')
 
 env_debugdraw = env_modules.Clone()
+env_debugdraw.Append(CXXFLAGS=['-std=c++11'])
 
 # Compile as a static library
 lib = env_debugdraw.Library("debugdraw", Glob("*.cpp"))
