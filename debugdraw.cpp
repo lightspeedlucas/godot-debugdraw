@@ -4,6 +4,7 @@
 #include <servers/visual_server.h>
 #include <scene/main/scene_main_loop.h>
 #include <scene/main/viewport.h>
+#include <scene/resources/theme.h>
 #include <print_string.h>
 
 DebugDraw *DebugDraw::singleton = NULL;
@@ -44,6 +45,8 @@ bool DebugDraw::init()
     canvas = vs->canvas_create();
     vs->viewport_attach_canvas(viewport, canvas);
     vs->viewport_set_canvas_layer(viewport, canvas, (~0U) >> 1);
+
+    default_font = Theme::get_default()->get_font("_", "_");
 
     st->connect("idle_frame", this, "_idle_frame");
     return ready = true;
@@ -105,11 +108,34 @@ void DebugDraw::area(const Rect2 &rect, const Color &color, float duration)
     }
 }
 
+void DebugDraw::print(const String &text, const Color &color, float duration)
+{
+    if (ready || init())
+    {
+        auto *vs = VS::get_singleton();
+        Drawing d = { vs->canvas_item_create(), duration };
+        vs->canvas_item_set_parent(d.canvas_item, canvas);
+        default_font->draw(d.canvas_item, Vector2(1, 1), text, color.inverted());
+        default_font->draw(d.canvas_item, Vector2(), text, color);
+        auto offset = (prints.size() + 1) * default_font->get_height();
+        vs->canvas_item_set_transform(d.canvas_item, Matrix32(.0f, Vector2(10.f, 10.f + offset)));
+        prints.push_back(d);
+    }
+}
+
 void DebugDraw::clear()
 {
     auto *vs = VS::get_singleton();
 
+    // clear drawings
     while (auto *e = drawings.front())
+    {
+        vs->free(e->get().canvas_item);
+        e->erase();
+    }
+
+    // clear prints
+    while (auto *e = prints.front())
     {
         vs->free(e->get().canvas_item);
         e->erase();
@@ -122,6 +148,7 @@ void DebugDraw::_idle_frame()
     auto *st = SceneTree::get_singleton();
     const float delta = st->get_idle_process_time();
 
+    // remove dead drawings
     for (auto *e = drawings.front(); e;)
     {
         auto &d = e->get();
@@ -139,6 +166,30 @@ void DebugDraw::_idle_frame()
             e = e->next();
         }
     }
+
+    // remove dead prints
+    uint32_t print_count = 0;
+
+    for (auto *e = prints.front(); e;)
+    {
+        auto &d = e->get();
+
+        if (d.time_left < .0f)
+        {
+            vs->free(d.canvas_item);
+            auto old = e;
+            e = e->next();
+            old->erase();
+        }
+        else
+        {
+            auto offset = (print_count + 1) * default_font->get_height();
+            vs->canvas_item_set_transform(d.canvas_item, Matrix32(.0f, Vector2(10.f, 10.f + offset)));
+            ++print_count;
+            d.time_left -= delta;
+            e = e->next();
+        }
+    }
 }
 
 DebugDraw *DebugDraw::get_singleton()
@@ -152,6 +203,7 @@ void DebugDraw::_bind_methods()
     ObjectTypeDB::bind_method(_MD("line", "a:Vector2", "b:Vector2", "color:Color", "width:real", "duration:real"), &DebugDraw::line, DEFVAL(1.f), DEFVAL(.0f));
     ObjectTypeDB::bind_method(_MD("rect", "rect:Rect2", "color:Color", "width:real", "duration:real"), &DebugDraw::rect, DEFVAL(1.f), DEFVAL(.0f));
     ObjectTypeDB::bind_method(_MD("area", "rect:Rect2", "color:Color", "duration:real"), &DebugDraw::area, DEFVAL(.0f));
+    ObjectTypeDB::bind_method(_MD("print", "text:String", "color:Color", "duration:real"), &DebugDraw::print, DEFVAL(.0f));
 
     ObjectTypeDB::bind_method(_MD("clear"), &DebugDraw::clear);
 

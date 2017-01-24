@@ -1,6 +1,7 @@
 #ifndef DEBUGDRAW_H
 #define DEBUGDRAW_H
 
+#include <scene/resources/font.h>
 #include <object.h>
 #include <list.h>
 
@@ -20,6 +21,7 @@ public:
     void line(const Vector2 &a, const Vector2 &b, const Color &color, float width = 1, float duration = .0f);
     void rect(const Rect2 &rect, const Color &color, float width = 1, float duration = .0f);
     void area(const Rect2 &rect, const Color &color, float duration = .0f);
+    void print(const String &text, const Color &color, float duration = .0f);
 
     void clear();
     void _idle_frame();
@@ -38,7 +40,8 @@ protected:
         float time_left;
     };
 
-    List<Drawing> drawings;
+    List<Drawing> drawings, prints;
+    Ref<Font> default_font;
     RID canvas;
 
     /** State */
